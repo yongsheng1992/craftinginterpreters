@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
+
 class GenerateAST {
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
@@ -37,6 +38,8 @@ class GenerateAST {
         writer.println();
         writer.println("import java.util.List;");
         writer.println("abstract class " + baseName + " {");
+
+        defineVisitor(writer, baseName, types);
 
         writer.println();
         
@@ -80,4 +83,38 @@ class GenerateAST {
     
             writer.println("  }");
     }
+
+    interface PastryVistor {
+        void visitBeignet(Beignet beignet);
+        void visitCruller(Cruller cruller);
+    }
+
+    abstract class Pastry {
+        abstract void accept(PastryVistor visitor);
+    }
+
+    class Beignet extends Pastry {
+        @Override
+        void accept(PastryVistor vistor) {
+            vistor.visitBeignet(this);
+        }
+    }
+
+    class Cruller extends Pastry {
+        @Override
+        void accept(PastryVistor vistor) {
+            vistor.visitCruller(this);
+        }
+    }
+
+    private static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {
+        writer.println("  interface Visitor<R> {");
+
+        for (String type : types) {
+            String typeName = type.split(":")[0].trim();
+            writer.println("    R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
+        }
+        writer.println("  }");
+    }
+
 }
