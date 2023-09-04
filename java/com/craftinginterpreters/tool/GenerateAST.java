@@ -31,10 +31,10 @@ class GenerateAST {
     }
 
     private static void defineAST(String outputDir, String baseName, List<String> types) throws IOException {
-        String path = outputDir + File.separator + outputDir + ".java";
+        String path = outputDir + File.separator + baseName + ".java";
         PrintWriter writer = new PrintWriter(path, "UTF-8");
 
-        writer.println("package com.creftinginterpreters.lox");
+        writer.println("package com.craftinginterpreters.lox;");
         writer.println();
         writer.println("import java.util.List;");
         writer.println("abstract class " + baseName + " {");
@@ -63,15 +63,15 @@ class GenerateAST {
             String[] fields = fieldList.split(", ");
             for (String field : fields) {
                 String name = field.split(" ")[1];
-                writer.println("    this." + name + " = " + name + ";");
+                writer.println("      this." + name + " = " + name + ";");
             }
-            writer.println("}");
+            writer.println("    }");
             
             // Visitor pattern
             writer.println();
             writer.println("    @Override");
-            writer.println("    <R> R accept(Visitor<R> vistor) {");
-            writer.println("    return visitor.visit" + className + baseName + "(this);");
+            writer.println("    <R> R accept(Visitor<R> visitor) {");
+            writer.println("       return visitor.visit" + className + baseName + "(this);");
             writer.println("    }");
 
             // Fields
