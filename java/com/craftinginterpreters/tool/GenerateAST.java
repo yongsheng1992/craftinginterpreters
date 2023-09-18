@@ -34,6 +34,7 @@ class GenerateAST {
         String path = outputDir + File.separator + baseName + ".java";
         PrintWriter writer = new PrintWriter(path, "UTF-8");
 
+        writer.println("/* This code is generate by GenerateAST.java. Do not modified! */");
         writer.println("package com.craftinginterpreters.lox;");
         writer.println();
         writer.println("import java.util.List;");
