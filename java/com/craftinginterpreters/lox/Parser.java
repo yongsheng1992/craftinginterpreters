@@ -1,6 +1,9 @@
 package com.craftinginterpreters.lox;
 
 import java.util.List;
+
+import com.craftinginterpreters.lox.Expr.Supper;
+
 import static com.craftinginterpreters.lox.TokenType.*;
 
 /*
@@ -15,6 +18,7 @@ import static com.craftinginterpreters.lox.TokenType.*;
  * primary    -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
  */
 class Parser {
+    private static class ParseError extends RuntimeException {}
     private final List<Token> tokens;
     private int current = 0;
     
@@ -48,15 +52,46 @@ class Parser {
     }
 
     private Expr primary() {
-        Token type = peek();
-        switch (type.type) {
-            case NUMBER: return new Expr.Literal(type);
-            case STRING: return new Expr.Literal(type);
-            default:
-                Lox.err(type, null);
+        if (match(FALSE)) return new Expr.Literal(false);
+        if (match(TRUE)) return new Expr.Literal(true);
+        if (match(NIL)) return new Expr.Literal(null);
+
+        if (match(NUMBER, STRING)) {
+            return new Expr.Literal(previous().literal);
+        }
+
+        if (match(SUPER)) {
+            Token keyword = previous();
+            consume(DOT, "Expect '.' after 'super'.");
+            Token method = consume(IDENTIFIER, "Exprect superclass method name.");
+            return new Expr.Supper(keyword, method);
+        }
+
+        if (match(THIS)) return new Expr.This(previous());
+
+        if (match(IDENTIFIER)) return new Expr.Variable(previous());
+
+        throw error(peek(), "Expect expression.");
+    }
+
+
+    private Expr unary() {
+        if (match(BANG, MINUS)) {
+            Token operator = previous();
+            Expr right = unary();
+            return new Expr.Unary(operator, right);
         }
     }
 
+    private Token consume(TokenType type, String message) {
+        if (check(type)) return advance();
+        throw error(peek(), message);
+    }
+
+    private ParseError error(Token token, String message) {
+        Lox.err(token, message);
+        return new ParseError();
+    }
     private boolean match(TokenType... types) {
         for (TokenType type : types) {
             if (check(type)) {
