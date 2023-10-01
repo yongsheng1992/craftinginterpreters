@@ -1,5 +1,7 @@
 package com.craftinginterpreters.lox;
 
+import java.util.List;
+
 import com.craftinginterpreters.lox.Expr.Assign;
 import com.craftinginterpreters.lox.Expr.Binary;
 import com.craftinginterpreters.lox.Expr.Call;
@@ -26,6 +28,10 @@ class AstPrinter implements Expr.Visitor<String> {
         );
 
         System.out.println(new AstPrinter().print(expression));
+
+        expression = new Expr.Assign(new Token(TokenType.IDENTIFIER, "a", null, 1), new Expr.Literal(1));
+        System.out.println(new AstPrinter().print(expression));
+
     }
     String print(Expr expr) {
         return expr.accept(this);
@@ -33,8 +39,7 @@ class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitAssignExpr(Assign expr) {
-        // TODO Auto-generated method stub
-        return null;
+        return parenthesize2("=", expr.name.lexeme, expr.value);
     }
 
     @Override
@@ -44,14 +49,12 @@ class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitCallExpr(Call expr) {
-        // TODO Auto-generated method stub
-        return null;
+        return parenthesize2("call", expr.callee, expr.arguments);
     }
 
     @Override
     public String visitGetExpr(Get expr) {
-        // TODO Auto-generated method stub
-        return null;
+        return parenthesize2(".", expr.object, expr.name.lexeme);
     }
 
     @Override
@@ -67,26 +70,22 @@ class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitLogicalExpr(Logical expr) {
-        // TODO Auto-generated method stub
-        return null;
+        return parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
     @Override
     public String visitSetExpr(Set expr) {
-        // TODO Auto-generated method stub
-        return null;
+        return parenthesize2("=", expr.Object, expr.name.lexeme, expr.value);
     }
 
     @Override
     public String visitSupperExpr(Supper expr) {
-        // TODO Auto-generated method stub
-        return null;
+        return parenthesize2("super", expr.method);
     }
 
     @Override
     public String visitThisExpr(This expr) {
-        // TODO Auto-generated method stub
-        return null;
+        return "this";
     }
 
     @Override
@@ -96,8 +95,7 @@ class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitVariableExpr(Variable expr) {
-        // TODO Auto-generated method stub
-        return null;
+        return expr.name.lexeme;
     }    
 
     private String parenthesize(String name, Expr... exprs) {
@@ -110,5 +108,30 @@ class AstPrinter implements Expr.Visitor<String> {
         builder.append(")");
 
         return builder.toString();
+    }
+
+    private String parenthesize2(String name, Object... parts) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("(").append(name);
+        transform(builder, parts);
+        builder.append(")");
+        return builder.toString();
+        
+    }
+    
+    private void transform(StringBuilder builder, Object... parts) {
+        // todo handle Stmt.
+        for (Object part : parts) {
+            builder.append(" ");
+            if (part instanceof Expr) {
+                builder.append(((Expr)part).accept(this));
+            } else if (part instanceof Token) {
+                builder.append(((Token)part).lexeme);
+            } else if (part instanceof List) {
+                transform(builder, parts);
+            } else {
+                builder.append(part);
+            }
+        }
     }
 }
