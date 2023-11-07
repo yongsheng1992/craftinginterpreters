@@ -55,9 +55,9 @@ class Scanner {
         char ch = advance();
         switch (ch) {
             case '(': addToken(LEFT_PAREN);break;
-            case ')': addToken(RIGHT_PAREN);break;
+            case ')': addToken(RIGHT_PAREN);
+            case '}': addToken(RIGHT_BRACE);break;
             case '{': addToken(LEFT_BRACE);break;
-            case '}': addToken(RIGHT_PAREN);break;
             case ',': addToken(COMMA);break;
             case '.': addToken(DOT);break;
             case '+': addToken(PLUS);break;
@@ -72,7 +72,7 @@ class Scanner {
                 addToken(match('=') ? EQUAL_EQUAL : EQUAL);
                 break;
             case '<':
-                addToken(match('=') ? LESS_EUQAL : LESS);
+                addToken(match('=') ? LESS_EQUAL : LESS);
                 break;
             case '>':
                 addToken(match('=') ? GREATER_EQUAL : GREATER) ;

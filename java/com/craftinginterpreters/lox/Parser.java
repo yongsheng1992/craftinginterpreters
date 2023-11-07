@@ -2,17 +2,15 @@ package com.craftinginterpreters.lox;
 
 import java.util.List;
 
-import com.craftinginterpreters.lox.Expr.Supper;
-
 import static com.craftinginterpreters.lox.TokenType.*;
 
 /*
  * Parser relies on an finite precedence and associativity. The grammer is defined below.
  * expression -> equality ;
- * equality   -> comparsion( ("!=" | "==") comparsion )* ;
- * comparsion -> term ( ( ">" | ">=" | "<" | "<=") term ) ;
- * term       -> factor ( ( "-" | "+") factor );
- * factor     -> unary ( ( "!" | "-" ) unary )* ;
+ * equality   -> comparison( ("!=" | "==") comparison )* ;
+ * comparison -> term ( ( ">" | ">=" | "<" | "<=") term ) ;
+ * term       -> factor ( ( "-" | "+") factor )*;
+ * factor     -> unary ( ( "*" | "/" ) unary )* ;
  * unary      -> ( "!" | "-" ) unary
  *             | primary ;
  * primary    -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
@@ -30,25 +28,72 @@ class Parser {
         return equality();
     }
 
+    Expr parse() {
+        try {
+            return expression();
+        } catch (ParseError error) {
+            return null;
+        }
+    }
+
     /**
      * Returns a binary expression.
-     * (a + b == 1) == (a + b != 1)
-     * @return
+     * @return Expr
      */
     private Expr equality() {
         Expr expr = comparison();
 
         while (match(BANG_EQUAL, EQUAL_EQUAL)) {
-            Token opreator = previous();
+            Token operator = previous();
             Expr right = comparison();
-            expr = new Expr.Binary(expr, opreator, right);
+            expr = new Expr.Binary(expr, operator, right);
         }
 
         return expr;
     }
 
     private Expr comparison() {
-        
+        Expr expr = term();
+
+        while (match(LESS, LESS_EQUAL, GREATER, GREATER_EQUAL)) {
+            Token opreator = previous();
+            Expr right = term();
+            expr = new Expr.Binary(expr, opreator, right);
+        }
+        return expr;
+    }
+
+    private Expr term() {
+        Expr expr = factor();
+
+        while (match(MINUS, PLUS)) {
+            Token operator = previous();
+            Expr right = factor();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+        return expr;
+    }
+
+    private Expr factor() {
+        Expr expr = unary();
+
+        while (match(STAR, SLASH)) {
+            Token operator = previous();
+            Expr right = unary();
+            expr =  new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr unary() {
+        if (match(BANG_EQUAL, MINUS)) {
+            Token operator = previous();
+            Expr right = unary();
+            return new Expr.Unary(operator, right);
+        }
+
+        return primary();
     }
 
     private Expr primary() {
@@ -60,27 +105,9 @@ class Parser {
             return new Expr.Literal(previous().literal);
         }
 
-        if (match(SUPER)) {
-            Token keyword = previous();
-            consume(DOT, "Expect '.' after 'super'.");
-            Token method = consume(IDENTIFIER, "Exprect superclass method name.");
-            return new Expr.Supper(keyword, method);
-        }
-
-        if (match(THIS)) return new Expr.This(previous());
-
         if (match(IDENTIFIER)) return new Expr.Variable(previous());
 
         throw error(peek(), "Expect expression.");
-    }
-
-
-    private Expr unary() {
-        if (match(BANG, MINUS)) {
-            Token operator = previous();
-            Expr right = unary();
-            return new Expr.Unary(operator, right);
-        }
     }
 
     private Token consume(TokenType type, String message) {
@@ -105,7 +132,7 @@ class Parser {
     /**
      * Checks whether the current token's type is required.
      * 
-     * @param type
+     * @param type TokenType
      * @return boolean
      */
     private boolean check(TokenType type) {
@@ -127,7 +154,7 @@ class Parser {
     }
 
     /**
-     * Returns the previous toekn. Where is it used.
+     * Returns the previous token. Where is it used.
      * 
      * @return Token
      */
