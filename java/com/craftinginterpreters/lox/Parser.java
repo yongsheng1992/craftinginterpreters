@@ -105,6 +105,13 @@ class Parser {
             return new Expr.Literal(previous().literal);
         }
 
+        if (match(LEFT_PAREN)) {
+            Expr expr = expression();
+            if (!match(RIGHT_PAREN)) {
+                throw error(peek(), "Expect right paren");
+            }
+            return expr;
+        }
         if (match(IDENTIFIER)) return new Expr.Variable(previous());
 
         throw error(peek(), "Expect expression.");

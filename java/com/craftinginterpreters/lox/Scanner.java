@@ -55,7 +55,7 @@ class Scanner {
         char ch = advance();
         switch (ch) {
             case '(': addToken(LEFT_PAREN);break;
-            case ')': addToken(RIGHT_PAREN);
+            case ')': addToken(RIGHT_PAREN);break;
             case '}': addToken(RIGHT_BRACE);break;
             case '{': addToken(LEFT_BRACE);break;
             case ',': addToken(COMMA);break;
