@@ -45,12 +45,20 @@ class Lox {
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Expr expr = parser.parse();
+        Interpreter interpreter = new Interpreter();
+        interpreter.interpret(expr);
     }
 
     public static void error(int line, String message) {
         report(line, "", message);
     }
 
+    public static void runtimeError(RuntimeError error) {
+        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        hasError = true;
+    }
     public static void err(Token token, String message) {
         if (token.type == TokenType.EOF) {
             report(token.line, " at end", message);
