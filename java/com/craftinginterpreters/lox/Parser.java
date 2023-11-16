@@ -1,11 +1,14 @@
 package com.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
 
 /*
- * Parser relies on an finite precedence and associativity. The grammer is defined below.
+ * Parser relies on an finite precedence and associativity. The grammar
+ * is defined below.
+ *
  * expression -> equality ;
  * equality   -> comparison( ("!=" | "==") comparison )* ;
  * comparison -> term ( ( ">" | ">=" | "<" | "<=") term ) ;
@@ -13,7 +16,20 @@ import static com.craftinginterpreters.lox.TokenType.*;
  * factor     -> unary ( ( "*" | "/" ) unary )* ;
  * unary      -> ( "!" | "-" ) unary
  *             | primary ;
- * primary    -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+ * primary    -> NUMBER | STRING | "true"
+ *            | "false" | "nil" | "(" expression ")" | IDENTIFIER;
+ *
+ *
+ * below is statement grammar.
+ *
+ * program         -> declaration* EOF ;
+ * declaration     -> varDel |
+ *                 | statement ;
+ * varDel          -> "var" IDENTIFIER ("=" expression ? ";" ;
+ * statement       -> expressionStmt | printStmt ;
+ * expressionStmt  -> expression ";" ;
+ * printStmt       -> "print" expression ";" ;
+ *
  */
 class Parser {
     private static class ParseError extends RuntimeException {}
@@ -28,12 +44,48 @@ class Parser {
         return equality();
     }
 
-    Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError error) {
-            return null;
+    List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+        return statements;
+    }
+
+    private Stmt declaration() {
+        if (match(VAR)) {
+            return varDeclaration();
+        }
+        return statement();
+    }
+
+    private Stmt statement() {
+        if (match(PRINT)) {
+            return printStatement();
+        }
+        return expressionStatement();
+    }
+
+    private Stmt expressionStatement() {
+        Expr expression = expression();
+        consume(SEMICOLON, "Except ';' after expression");
+        return new Stmt.Expression(expression);
+    }
+
+    private Stmt printStatement() {
+        Expr value = expression();
+        consume(SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt varDeclaration() {
+        Token name = consume(IDENTIFIER, "Expect 'identifier' after keyword 'var'");
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression();
+        }
+        consume(SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
     }
 
     /**

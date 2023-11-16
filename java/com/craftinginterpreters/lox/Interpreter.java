@@ -13,12 +13,15 @@ import com.craftinginterpreters.lox.Expr.This;
 import com.craftinginterpreters.lox.Expr.Unary;
 import com.craftinginterpreters.lox.Expr.Variable;
 
-class Interpreter implements Expr.Visitor<Object> {
+import java.util.List;
 
-    void interpret(Expr expression) {
+class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
+
+    void interpret(List<Stmt> statements) {
         try {
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
+            for (Stmt statement : statements) {
+                evaluate(statement);
+            }
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
@@ -37,8 +40,12 @@ class Interpreter implements Expr.Visitor<Object> {
         }
         return object.toString();
     }
-    private Object evaluate(Expr expr) {
-        return expr.accept(this);
+    private Object evaluate(Stmt statement) {
+        return statement.accept(this);
+    }
+
+    private Object evaluate(Expr expression) {
+        return expression.accept(this);
     }
 
     @Override
@@ -185,4 +192,20 @@ class Interpreter implements Expr.Visitor<Object> {
         return null;
     }
 
+    @Override
+    public Object visitExpressionStmt(Stmt.Expression stmt) {
+        return evaluate(stmt.expression);
+    }
+
+    @Override
+    public Object visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Object visitVarStmt(Stmt.Var stmt) {
+        return null;
+    }
 }

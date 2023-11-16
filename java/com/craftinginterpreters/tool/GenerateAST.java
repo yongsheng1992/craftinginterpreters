@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-class GenerateAST {
+class GenerateAst {
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("Usage: generate_ast <output directory>");
@@ -27,6 +27,12 @@ class GenerateAST {
             "This: Token keyword",
             "Unary: Token operator, Expr right",
             "Variable: Token name"
+        ));
+
+        defineAST(outputDir, "Stmt", Arrays.asList(
+                "Expression: Expr expression",
+                "Print: Expr expression",
+                "Var: Token name, Expr initializer"
         ));
     }
 

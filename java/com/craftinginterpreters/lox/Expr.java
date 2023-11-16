@@ -1,3 +1,4 @@
+/* This code is generate by GenerateAST.java. Do not modified! */
 package com.craftinginterpreters.lox;
 
 import java.util.List;
