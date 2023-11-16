@@ -10,13 +10,14 @@ import java.util.List;
 
 class Lox {
     static boolean hasError = false;
+    private static final Interpreter interpreter = new Interpreter();
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
             System.out.println("Usage: jlox [script]");
             System.exit(64);
         } else if (args.length == 1) {
-            runFile(args[1]);
+            runFile(args[0]);
         } else {
             runPrompt();
         }
@@ -47,7 +48,6 @@ class Lox {
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         List<Stmt> statements = parser.parse();
-        Interpreter interpreter = new Interpreter();
         interpreter.interpret(statements);
     }
 
@@ -56,7 +56,7 @@ class Lox {
     }
 
     public static void runtimeError(RuntimeError error) {
-        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        System.err.println(error.getMessage() + "\n[livane " + error.token.line + "]");
         hasError = true;
     }
     public static void err(Token token, String message) {
