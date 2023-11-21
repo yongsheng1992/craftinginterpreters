@@ -52,8 +52,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
 
     @Override
     public Object visitAssignExpr(Assign expr) {
-        // TODO Auto-generated method stub
-        return null;
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
     }
 
     @Override

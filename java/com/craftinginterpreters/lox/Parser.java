@@ -9,7 +9,9 @@ import static com.craftinginterpreters.lox.TokenType.*;
  * Parser relies on an finite precedence and associativity. The grammar
  * is defined below.
  *
- * expression -> equality ;
+ * expression -> assignment ;
+ * assignment -> IDENTIFIER "=" assignment
+ *             | equality ;
  * equality   -> comparison( ("!=" | "==") comparison )* ;
  * comparison -> term ( ( ">" | ">=" | "<" | "<=") term ) ;
  * term       -> factor ( ( "-" | "+") factor )*;
@@ -41,7 +43,7 @@ class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return assignment();
     }
 
     List<Stmt> parse() {
@@ -88,6 +90,23 @@ class Parser {
         return new Stmt.Var(name, initializer);
     }
 
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(EQUAL)) {
+            Token equal = previous();
+            Expr value = equality();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equal, "Invalid assignment target");
+        }
+
+        return expr;
+    }
     /**
      * Returns a binary expression.
      * @return Expr
