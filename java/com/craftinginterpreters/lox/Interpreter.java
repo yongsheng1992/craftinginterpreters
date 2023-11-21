@@ -215,4 +215,23 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
         environment.define(stmt.name.lexeme, value);
         return null;
     }
+
+    @Override
+    public Object visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt, new Environment(environment));
+        return null;
+    }
+
+    private void executeBlock(Stmt.Block stmt, Environment environment) {
+        Environment previous = this.environment;
+        try {
+            this.environment = environment;
+
+            for (Stmt statement : stmt.statements) {
+                evaluate(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
 }

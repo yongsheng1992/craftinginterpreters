@@ -4,8 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
+    final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();
 
+    Environment() {
+        enclosing = null;
+    }
+
+    Environment(Environment environment) {
+        this.enclosing = environment;
+    }
     void define(String name, Object value) {
         this.values.put(name, value);
     }
@@ -15,6 +23,9 @@ public class Environment {
             return this.values.get(token.lexeme);
         }
 
+        if (this.enclosing != null) {
+            return this.enclosing.get(token);
+        }
         throw new RuntimeError(token, "Undefined variable '" + token.lexeme + "'");
     }
 
@@ -24,6 +35,10 @@ public class Environment {
             return;
         }
 
+        if (this.enclosing != null) {
+            this.enclosing.assign(name, value);
+            return;
+        }
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 }

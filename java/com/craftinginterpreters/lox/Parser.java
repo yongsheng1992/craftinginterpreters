@@ -28,7 +28,8 @@ import static com.craftinginterpreters.lox.TokenType.*;
  * declaration     -> varDel |
  *                 | statement ;
  * varDel          -> "var" IDENTIFIER ("=" expression ? ";" ;
- * statement       -> expressionStmt | printStmt ;
+ * statement       -> expressionStmt | printStmt | block;
+ * block           -> { declaration* } ;
  * expressionStmt  -> expression ";" ;
  * printStmt       -> "print" expression ";" ;
  *
@@ -53,6 +54,15 @@ class Parser {
         }
         return statements;
     }
+    private Stmt block() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!check(RIGHT_PAREN) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+        consume(RIGHT_PAREN, "Expect '}' after block.");
+
+        return new Stmt.Block(statements);
+    }
 
     private Stmt declaration() {
         if (match(VAR)) {
@@ -64,6 +74,10 @@ class Parser {
     private Stmt statement() {
         if (match(PRINT)) {
             return printStatement();
+        }
+
+        if (match(LEFT_PAREN)) {
+            return block();
         }
         return expressionStatement();
     }
