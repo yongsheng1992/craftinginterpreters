@@ -28,7 +28,9 @@ import static com.craftinginterpreters.lox.TokenType.*;
  * declaration     -> varDel |
  *                 | statement ;
  * varDel          -> "var" IDENTIFIER ("=" expression ? ";" ;
- * statement       -> expressionStmt | printStmt | block;
+ * statement       -> expressionStmt | printStmt | block | ifStmt ;
+ * ifStmt          -> "if" "(" expression ")" statement
+ *                    ("else" statement)? ;
  * block           -> { declaration* } ;
  * expressionStmt  -> expression ";" ;
  * printStmt       -> "print" expression ";" ;
@@ -79,9 +81,27 @@ class Parser {
         if (match(LEFT_PAREN)) {
             return block();
         }
+
+        if (match(IF)) {
+            return ifStatement();
+        }
+
         return expressionStatement();
     }
 
+    private Stmt ifStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after if condition");
+
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if (match(ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
     private Stmt expressionStatement() {
         Expr expression = expression();
         consume(SEMICOLON, "Except ';' after expression");
@@ -116,7 +136,7 @@ class Parser {
                 return new Expr.Assign(name, value);
             }
 
-            error(equal, "Invalid assignment target");
+            throw error(equal, "Invalid assignment target");
         }
 
         return expr;

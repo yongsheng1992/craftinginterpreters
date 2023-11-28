@@ -3,6 +3,7 @@ package com.craftinginterpreters.tool;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,13 +34,14 @@ class GenerateAst {
                 "Expression: Expr expression",
                 "Print: Expr expression",
                 "Var: Token name, Expr initializer",
-                "Block: List<Stmt> statements"
+                "Block: List<Stmt> statements",
+                "If: Expr condition, Stmt thenBranch, Stmt elseBranch"
         ));
     }
 
     private static void defineAST(String outputDir, String baseName, List<String> types) throws IOException {
         String path = outputDir + File.separator + baseName + ".java";
-        PrintWriter writer = new PrintWriter(path, "UTF-8");
+        PrintWriter writer = new PrintWriter(path, StandardCharsets.UTF_8);
 
         writer.println("/* This code is generate by GenerateAST.java. Do not modified! */");
         writer.println("package com.craftinginterpreters.lox;");

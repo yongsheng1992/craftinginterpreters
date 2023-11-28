@@ -222,6 +222,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
         return null;
     }
 
+    @Override
+    public Object visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            return evaluate(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            return evaluate(stmt.elseBranch);
+        }
+        return null;
+    }
+
     private void executeBlock(Stmt.Block stmt, Environment environment) {
         Environment previous = this.environment;
         try {
